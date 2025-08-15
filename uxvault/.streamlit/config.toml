@@ -1,0 +1,10 @@
+[server]
+enableStaticServing = true
+
+[[theme.fontFaces]]
+family = "League-Spartan"
+url = "app/static/LeagueSpartan-VariableFont_wght.ttf"
+style = "normal" 
+[theme]
+base = "light"
+font = "League-Spartan"
