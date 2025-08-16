@@ -80,7 +80,7 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
         st.write("Survey Configuration:")
         # st.json(survey_config)
         st.session_state["testing_survey"] = survey_config
-        st.switch_page("solve_card_sorting.py")
+        st.switch_page("uxvault/solve_card_sorting.py")
 
     if st.button("Create Survey", type="primary", width=300,
                  help="This will create the card sorting survey with the provided details."):
