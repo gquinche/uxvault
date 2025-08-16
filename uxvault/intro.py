@@ -12,9 +12,9 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
     st.markdown(f"<h5 style='text-align: center;'>{subtitle}</h2>", unsafe_allow_html=True)
     with st.container(horizontal=True, gap="medium", horizontal_alignment="center"):
         if st.button("Create a card sorting",type="primary"):
-            st.switch_page("create_card_sorting.py")
+            st.switch_page("uxvault/create_card_sorting.py")
         
         if st.button("Learn more"):
-            st.switch_page("about.py") 
+            st.switch_page("uxvault/about.py") 
         # st.page_link(label="Create a card sorting", page="create_card_sorting.py", icon=":material/create:")
         # st.page_link(label="Learn more", page="about.py")
