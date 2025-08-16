@@ -3,7 +3,7 @@ from datetime import datetime
 
 def initialize_session_state(survey_config):
     """Initialize session state variables for the card sorting"""
-    if "sorted_cards" not in st.session_state:
+    if "sorted_cards" not in st.session_state: #fix bug that stores previous card sorting
         st.session_state.sorted_cards = {
             "uncategorized": survey_config["cards"].copy()
         }
@@ -64,7 +64,7 @@ def main():
     if "testing_survey" not in st.session_state:
         st.error("No survey configuration found. Please create a survey first.")
         if st.button("Go back to survey creation"):
-            st.switch_page("create_card_sorting.py")
+            st.switch_page("uxvault/create_card_sorting.py")
         st.stop()
     
     survey_config = st.session_state["testing_survey"]
