@@ -2,7 +2,7 @@ import streamlit as st
 import os
 
 # Change working directory to script directory
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+# os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 BIG_LOGO = 'uxvault/assets/ux-vault-logo-white.svg'
 SMALL_LOGO = 'uxvault/assets/ux-vault-logo-mini.svg'
