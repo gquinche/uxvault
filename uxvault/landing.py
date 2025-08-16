@@ -31,11 +31,11 @@ st.logo(image = BIG_LOGO,icon_image=SMALL_LOGO,size="large")
 
 # uxvault/about.py uxvault/create_card_sorting.py uxvault/dashboard.py uxvault/home.py uxvault/landing page.py uxvault/solve_card_sorting.py
 pg = st.navigation({
-    "Home": [st.Page("intro.py",icon=':material/home:' ,title="Home")],
-    "About": [st.Page("about.py",icon=':material/info:' ,title="About Us")],
-    "Tools": [st.Page("create_card_sorting.py",icon=':material/create:' ,title="Create Card Sorting"),
-              st.Page("solve_card_sorting.py",icon=':material/checklist_rtl:' ,title="Solve Card Sorting"),
-              st.Page("dashboard.py",icon=':material/dashboard:' ,title="Dashboard")]
+    "Home": [st.Page("./intro.py",icon=':material/home:' ,title="Home")],
+    "About": [st.Page("./about.py",icon=':material/info:' ,title="About Us")],
+    "Tools": [st.Page("./create_card_sorting.py",icon=':material/create:' ,title="Create Card Sorting"),
+              st.Page("./solve_card_sorting.py",icon=':material/checklist_rtl:' ,title="Solve Card Sorting"),
+              st.Page("./dashboard.py",icon=':material/dashboard:' ,title="Dashboard")]
 })
 
 pg.run()
