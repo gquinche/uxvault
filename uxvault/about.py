@@ -24,4 +24,4 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
     st.markdown(f"<p style='text-align: center;'>{content} <a href='{hyperlink}'>{text_link}</a> {ending}</p>", unsafe_allow_html=True)
     with st.container(horizontal=True, gap="medium", horizontal_alignment="right"):
         if st.button("Go Back",type='primary'):
-            st.switch_page("intro.py")
+            st.switch_page("uxvault/intro.py")
