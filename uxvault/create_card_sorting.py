@@ -2,11 +2,11 @@ import streamlit as st
 
 with st.container(horizontal=False, gap="medium", horizontal_alignment="center"):
     # Capture all inputs in variables
-    survey_title = st.text_input("Survey Title", "Card Sorting Survey", width=300, key="survey_title")
+    survey_title = st.text_input("Survey Title", placeholder="Card Sorting Survey", width=300, key="survey_title")
     allow_custom = st.pills(
         label="Allow users to create their own categories",
         options=["Yes", "No"],
-        default="Yes",
+        default="No",
         width=300,
         help="An open card sorting allows participants to create their own categories," \
              " while a closed card sorting provides predefined categories for them to sort into.",
@@ -14,7 +14,7 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
     )
     survey_description = st.text_area(
         "Description", 
-        "Optional extra description here...", 
+        placeholder="Optional extra description here...", 
         width=300,
         key="survey_description"
     )
