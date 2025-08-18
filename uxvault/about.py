@@ -22,6 +22,6 @@ ending = """and stay tuned for future tools to boost your UX research."""
 with st.container(horizontal=False, gap="medium", horizontal_alignment="center"):
     st.markdown(f"<h1 style='text-align: center;'>{text_to_justify}</h1>", unsafe_allow_html=True)
     st.markdown(f"<p style='text-align: center;'>{content} <a href='{hyperlink}'>{text_link}</a> {ending}</p>", unsafe_allow_html=True)
-    with st.container(horizontal=True, gap="medium", horizontal_alignment="right"):
+    with st.container(horizontal=True, gap="medium", horizontal_alignment="center"):
         if st.button("Go Back",type='primary'):
             st.switch_page("uxvault/intro.py")
