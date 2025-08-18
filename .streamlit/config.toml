@@ -8,3 +8,4 @@ style = "normal"
 [theme]
 base = "light"
 font = "League-Spartan"
+primaryColor="#995ec5"
