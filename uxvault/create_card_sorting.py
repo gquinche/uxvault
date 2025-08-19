@@ -1,13 +1,15 @@
 import streamlit as st
 
+MAX_WIDTH = 'stretch'
+
 with st.container(horizontal=False, gap="medium", horizontal_alignment="center"):
     # Capture all inputs in variables
-    survey_title = st.text_input("Survey Title", placeholder="Card Sorting Survey", width=300, key="survey_title")
+    survey_title = st.text_input("Survey Title", placeholder="Card Sorting Survey", width=MAX_WIDTH, key="survey_title")
     allow_custom = st.pills(
         label="Allow users to create their own categories",
         options=["Yes", "No"],
         default="No",
-        width=300,
+        width=MAX_WIDTH,
         help="An open card sorting allows participants to create their own categories," \
              " while a closed card sorting provides predefined categories for them to sort into.",
         key="allow_custom_categories"
@@ -15,13 +17,13 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
     survey_description = st.text_area(
         "Description", 
         placeholder="Optional extra description here...", 
-        width=300,
+        width=MAX_WIDTH,
         key="survey_description"
     )
     cards = st.multiselect(
         "Write down the cards to include in the survey",
         options=["Example card 1", "Example card 2", "Example card 3"],
-        width=300,
+        width=MAX_WIDTH,
         help="These are the objects the user will sort into categories.",
         accept_new_options=True,
         key="cards"
@@ -31,7 +33,7 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
         "Use named categories",
         options=["Yes", "No"],
         default="No",
-        width=300,
+        width=MAX_WIDTH,
         help="If you select 'No' categories won't have any names.",
         key="use_named_categories"
     )
@@ -44,7 +46,7 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
         categories = st.multiselect(
             "Write down the categories to include in the survey",
             options=["Example category 1", "Example category 2", "Example category 3"],
-            width=300,
+            width=MAX_WIDTH,
             help="These are the categories the user will sort into.",
             accept_new_options=True,
             key="named_categories"
@@ -57,7 +59,7 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
             step=1, 
             value=5,
             help="This is the number of categories the user will sort the cards into.",
-            width=300,
+            width=MAX_WIDTH,
             key="num_categories"
         )
 
@@ -74,7 +76,7 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
         "updated_at": str(st.session_state.get("updated_at", ""))
     }
 
-    if st.button("Test Survey", type="secondary", width=300,
+    if st.button("Test Survey", type="secondary", width=MAX_WIDTH,
                  help="This will allow you to test the card sorting survey with the provided details."):
         st.success("Testing survey...")
         st.write("Survey Configuration:")
@@ -82,7 +84,7 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
         st.session_state["testing_survey"] = survey_config
         st.switch_page("uxvault/solve_card_sorting.py")
 
-    if st.button("Create Survey", type="primary", width=300,
+    if st.button("Create Survey", type="primary", width=MAX_WIDTH,
                  help="This will create the card sorting survey with the provided details."):
         st.success("Creating survey...")
         # Here you can save survey_config to a file or database
