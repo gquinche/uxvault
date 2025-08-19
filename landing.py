@@ -13,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",)
 
 # detect 
-st.logo(image = BIG_LOGO,size="large",link="https://uxvault.streamlit.app/")
+st.logo(image = BIG_LOGO,size="large",link="https://github.com/gquinche/uxvault")
 
 
 pg = st.navigation({
