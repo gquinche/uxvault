@@ -1,6 +1,6 @@
 <div align="center">
   <picture>
-    <source srcset="img/ux-vault-logo-white.svg" media="(prefers-color-scheme: dark)">
+    <source srcset="uxvault/assets/ux-vault-logo-white.svg" media="(prefers-color-scheme: dark)">
     <img src="img/ux-vault-logo.svg" alt="UX Vault" width="500" onerror="this.replaceWith(document.createTextNode('UX Vault'))">
   </picture>
 </div>
