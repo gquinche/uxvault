@@ -2,10 +2,10 @@
 enableStaticServing = true
 
 [[theme.fontFaces]]
-family = "League-Spartan"
+family = "LeagueSpartan-VariableFont_wght"
 url = "app/static/LeagueSpartan-VariableFont_wght.ttf"
 style = "normal" 
 [theme]
 base = "light"
-font = "League-Spartan"
+font = "LeagueSpartan-VariableFont_wght"
 primaryColor="#995ec5"
