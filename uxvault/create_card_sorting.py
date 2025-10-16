@@ -29,11 +29,11 @@ def validate_survey_config() -> bool:
     """
     is_valid = True
     errors = []
-    
+
     # Check title
     if not st.session_state.get("survey_title"):
         errors.append("Survey title is required")
-    
+
     # Check cards
     cards = st.session_state.get("cards", [])
     if not cards:
@@ -42,27 +42,22 @@ def validate_survey_config() -> bool:
         errors.append("At least two cards are needed for sorting")
     if len(cards) != len(set(cards)):
         errors.append("Duplicate cards are not allowed")
-    
-    # Check categories based on configuration
-    if st.session_state.get("use_named_categories") == "Yes":
-        categories = st.session_state.get("named_categories", [])
+
+    # Check categories based on card sorting type
+    allow_custom = st.session_state.get("allow_custom_categories", "Closed")
+    if allow_custom in ["Closed", "Hybrid"]:
+        categories = st.session_state.get("categories", [])
         if not categories:
-            errors.append("At least one category is required when using named categories")
+            errors.append("At least one category is required")
         if len(categories) < 2:
             errors.append("At least two categories are needed for sorting")
         if len(categories) != len(set(categories)):
             errors.append("Duplicate categories are not allowed")
-            
+
         # Check if categories are not just whitespace
         if any(not cat.strip() for cat in categories):
             errors.append("Categories cannot be empty or just whitespace")
-    else:
-        num_categories = st.session_state.get("num_categories", 0)
-        if num_categories < 2:
-            errors.append("At least two categories are required")
-        if num_categories > 20:  # Reasonable upper limit
-            errors.append("Too many categories (maximum is 20)")
-    
+
     # Validate card content
     for card in cards:
         if not card.strip():
@@ -86,14 +81,15 @@ def validate_survey_config() -> bool:
 
 with st.container(horizontal=False, gap="medium", horizontal_alignment="center"):
     # Capture all inputs in variables
-    survey_title = st.text_input("Survey Title", placeholder="Card Sorting Survey", width=MAX_WIDTH, key="survey_title")
+    survey_title = st.text_input("Card Sorting Title", placeholder="Card Sorting #1", width=MAX_WIDTH, key="survey_title")
     allow_custom = st.pills(
-        label="Allow users to create their own categories",
-        options=["Yes", "No"],
-        default="No",
+        label="What type of card sorting do you want to create?",
+        options=["Closed", "Open", "Hybrid"],
+        default="Closed",
         width=MAX_WIDTH,
-        help="An open card sorting allows participants to create their own categories," \
-             " while a closed card sorting provides predefined categories for them to sort into.",
+        help="A closed card sorting provides predefined categories for them to sort into," \
+        " an open card sorting allows participants to create their own categories," \
+             " and a hybrid card sorting allows participants to use predefined categories and also create their own.",
         key="allow_custom_categories"
     )
     survey_description = st.text_area(
@@ -103,80 +99,54 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
         key="survey_description"
     )
     cards = st.multiselect(
-        "Write down the cards to include in the survey",
+        "Write down the cards",
         options=["Example card 1", "Example card 2", "Example card 3"],
         width=MAX_WIDTH,
-        help="These are the objects the user will sort into categories.",
+        help="These are the cards the user will sort into categories.",
         accept_new_options=True,
         key="cards"
     )
-    
-    use_named_categories = st.pills(
-        "Use named categories",
-        options=["Yes", "No"],
-        default="No",
-        width=MAX_WIDTH,
-        help="If you select 'No' categories won't have any names.",
-        key="use_named_categories"
-    )
 
-    # Initialize categories variable
-    categories = None
-    num_categories = None
-    
-    if use_named_categories == "Yes":
+    if allow_custom in ["Closed", "Hybrid"]:
         categories = st.multiselect(
-            "Write down the categories to include in the survey",
+            "Write down the category names",
             options=["Example category 1", "Example category 2", "Example category 3"],
             width=MAX_WIDTH,
-            help="These are the categories the user will sort into.",
+            help="These are the names of the categories the user will sort cards into. You must define at least 2 categories.",
             accept_new_options=True,
-            key="named_categories"
+            key="categories"
         )
     else:
-        num_categories = st.number_input(
-            "Number of categories", 
-            min_value=2, 
-            max_value=20, 
-            step=1, 
-            value=5,
-            help="This is the number of categories the user will sort the cards into.",
-            width=MAX_WIDTH,
-            key="num_categories"
-        )
+        categories = []
 
     # Create survey configuration dictionary
     survey_config = {
         "title": survey_title,
         "description": survey_description,
-        "allow_custom_categories": allow_custom == "Yes",
+        "allow_custom_categories": allow_custom,
         "cards": cards,
-        "use_named_categories": use_named_categories == "Yes",
-        "categories": categories if categories else [],
-        "num_categories": num_categories if num_categories else 0,
+        "categories": categories,
         "created_at": str(st.session_state.get("created_at", "")),
         "updated_at": str(st.session_state.get("updated_at", ""))
     }
 
-    if st.button("Test Survey", type="secondary", width=MAX_WIDTH,
+    if st.button("Test Card Sorting", type="secondary", width=MAX_WIDTH,
                  help="This will allow you to test the card sorting survey with the provided details."):
-        st.success("Testing survey...")
-        st.write("Survey Configuration:")
+        st.success("Testing Card Sorting...")
+        st.write("Card Sorting Configuration:")
         # st.json(survey_config)
         st.session_state["testing_survey"] = survey_config
         st.switch_page("uxvault/solve_card_sorting.py")
 
-    if st.button("Create Survey", type="primary", width=MAX_WIDTH,
+    if st.button("Create Card Sorting", type="primary", width=MAX_WIDTH,
                  help="This will create the card sorting survey with the provided details."):
-        if validate_survey_config():  # You'll need to implement this
+        if validate_survey_config():
             survey_config = {
                 "title": st.session_state.survey_title,
                 "description": st.session_state.survey_description,
                 "cards": st.session_state.cards,
-                "use_named_categories": st.session_state.use_named_categories == "Yes",
-                "categories": st.session_state.get("named_categories", []),
-                "num_categories": st.session_state.get("num_categories", 0),
-                "allow_custom_categories": st.session_state.allow_custom_categories == "Yes",
+                "categories": st.session_state.categories,
+                "allow_custom_categories": st.session_state.allow_custom_categories,
                 "created_at": str(datetime.now())
             }
             
@@ -184,14 +154,14 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
             st.session_state.testing_survey = survey_config
             
             # Show success message
-            st.success("Survey created successfully!")
+            st.success("Card Sorting created successfully!")
             
             # Show sharing options
             st.divider()
-            st.subheader("Share Survey")
+            st.subheader("Share Card Sorting")
             render_share_options(survey_config)
             
             # Test button
             st.divider()
-            if st.button("Test Survey", type="secondary", width=300):
+            if st.button("Test Card Sorting", type="secondary", width=300):
                 st.switch_page("uxvault/solve_card_sorting.py")
