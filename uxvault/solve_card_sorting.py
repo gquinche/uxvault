@@ -9,34 +9,29 @@ def initialize_session_state():
         st.session_state.testing_survey = None
     if "sorted_cards" not in st.session_state:
         st.session_state.sorted_cards = None
-    if "last_survey_config_hash" not in st.session_state:
-        st.session_state.last_survey_config_hash = None
+    if "card_sorting_reset" not in st.session_state:
+        st.session_state.card_sorting_reset = True
 
 def initialize_card_sorting(survey_config):
     """Initialize or reset card sorting based on survey configuration"""
-    # Create a hash of the current survey configuration
-    current_config_hash = hash(str({
-        "cards": survey_config["cards"],
-        "use_named_categories": survey_config["use_named_categories"],
-        "categories": survey_config.get("categories", []),
-        "num_categories": survey_config.get("num_categories", 0)
-    }))
-
-    # Only reinitialize if this is a new survey or the config has changed
-    if (not st.session_state.sorted_cards or 
-        current_config_hash != st.session_state.last_survey_config_hash):
-        st.session_state.sorted_cards = {
-            "Uncategorized": survey_config["cards"].copy()
-        }
-        if survey_config["use_named_categories"]:
-            for category in survey_config["categories"]:
-                st.session_state.sorted_cards[category] = []
-        else:
-            for i in range(survey_config["num_categories"]):
-                st.session_state.sorted_cards[f"Category {i+1}"] = []
+    # Reset card sorting if the reset flag is set (new survey or manual reset)
+    if not st.session_state.sorted_cards or st.session_state.card_sorting_reset:
+        # Initialize with empty dictionary if not exists
+        if not st.session_state.sorted_cards:
+            st.session_state.sorted_cards = {}
         
-        # Store the current config hash for future comparisons
-        st.session_state.last_survey_config_hash = current_config_hash
+        # Preserve existing categories but ensure Uncategorized exists with cards
+        if "Uncategorized" not in st.session_state.sorted_cards:
+            st.session_state.sorted_cards["Uncategorized"] = survey_config["cards"].copy()
+
+        # Always load predefined categories if they exist (for any card sorting type)
+        categories = survey_config.get("categories", [])
+        for category in categories:
+            if category not in st.session_state.sorted_cards:
+                st.session_state.sorted_cards[category] = []
+
+        # Clear the reset flag after initialization
+        st.session_state.card_sorting_reset = False
 
 def render_header(survey_config):
     """Render the survey header with title and description"""
@@ -61,21 +56,111 @@ def render_header(survey_config):
 
     return board_layout
 
+def sync_board_state():
+    """Synchronize board state with sorted_cards"""
+    if getattr(st.session_state, 'last_board_state', None):
+        try:
+            import json
+            board_data = st.session_state.last_board_state
+            if isinstance(board_data, str):
+                board_data = json.loads(board_data)
+
+            if isinstance(board_data, dict) and "columns" in board_data:
+                # Update sorted_cards to match board state
+                st.session_state.sorted_cards = {}
+                for column in board_data["columns"]:
+                    st.session_state.sorted_cards[column["title"]] = [card["title"] for card in column["cards"]]
+        except Exception as e:
+            st.error(f"Error syncing board state: {str(e)}")
+
+def add_category_to_board_state(category_name):
+    """Helper function to add a category to the cached board state"""
+    if getattr(st.session_state, 'last_board_state', None):
+        try:
+            import json
+            board_data = st.session_state.last_board_state
+            if isinstance(board_data, str):
+                board_data = json.loads(board_data)
+
+            if isinstance(board_data, dict) and "columns" in board_data:
+                # Update board state
+                board_data["columns"].append({"title": category_name, "cards": []})
+                st.session_state.last_board_state = board_data
+                sync_board_state()
+        except Exception as e:
+            st.error(f"Error adding category: {str(e)}")
+
+def add_quick_category():
+    """Callback to add a new category with auto-generated name"""
+    # Get existing categories from cached board state
+    existing_categories = []
+    if hasattr(st.session_state, 'last_board_state'):
+        try:
+            import json
+            if isinstance(st.session_state.last_board_state, str):
+                board_data = json.loads(st.session_state.last_board_state)
+            else:
+                board_data = st.session_state.last_board_state
+
+            if isinstance(board_data, dict) and "columns" in board_data:
+                existing_categories = [col.get("title", "") for col in board_data.get("columns", [])]
+        except:
+            existing_categories = []
+
+    # Generate unique default category name
+    base_name = "New Category"
+    counter = 1
+    category_name = base_name
+    while category_name in existing_categories:
+        counter += 1
+        category_name = f"{base_name} {counter}"
+
+    # Add category and sync state
+    add_category_to_board_state(category_name)
+
+def add_custom_category():
+    """Callback to add a custom named category"""
+    new_category = st.session_state.get("new_category_input", "").strip()
+    if new_category:
+        # Get existing categories from cached board state
+        existing_categories = []
+        if hasattr(st.session_state, 'last_board_state'):
+            try:
+                import json
+                board_data = st.session_state.last_board_state
+                if isinstance(board_data, str):
+                    board_data = json.loads(board_data)
+
+                if isinstance(board_data, dict) and "columns" in board_data:
+                    existing_categories = [col.get("title", "") for col in board_data.get("columns", [])]
+            except:
+                existing_categories = []
+
+        if new_category in existing_categories:
+            st.error(f"Category '{new_category}' already exists.")
+        else:
+            # Add category and sync state
+            add_category_to_board_state(new_category)
+    else:
+        st.warning("Please enter a category name.")
+
 def render_category_creator():
     """Render the interface for creating new categories"""
     st.text("If none of the categories seem to fit the class create new ones here")
+
+    # Quick add button for instant category creation
+    st.button("➕ Quick Add Category", key="quick_add_category_button", type="secondary", on_click=add_quick_category)
+    
+
+    # Optional advanced: custom named categories
     with st.container(horizontal=True):
         new_category = st.text_input(
-            "Create new category",
+            "Create custom category",
             key="new_category_input",
-            placeholder="New Category name",
+            placeholder="Custom category name (optional)",
             label_visibility="collapsed",
         )
-        if st.button("Add", key="add_category_button"):
-            if new_category and new_category not in st.session_state.sorted_cards:
-                st.session_state.sorted_cards[new_category] = []
-                st.success(f"Added category: {new_category}")
-                st.rerun()
+        st.button("Add Custom", key="add_category_button", on_click=add_custom_category)
     st.divider()
 
 # LEGACY FUNCTIONS - Keep as backup for traditional card sorting interface
@@ -150,8 +235,8 @@ def render_kanban_interface(survey_config, board_layout):
 
         initial_board.append(column_dict)
 
-    # Generate unique key for the kanban board
-    component_key = f"kanban_{hash(str(initial_board))}"
+    # Generate unique key for the kanban board - hash of category names only
+    component_key = f"kanban_{hash(str(sorted(st.session_state.sorted_cards.keys())))}"
 
     # Choose interface based on selection
     if board_layout == "Legacy Standard":
@@ -192,14 +277,27 @@ def render_kanban_interface(survey_config, board_layout):
             min_width=200,  # Minimum width to prevent resizing
             min_height=min_height,
             key=component_key,
-            
+
         )
 
-    # Board state is available for processing if needed
-    # Debug output removed for clean user interface
+        # Cache the actual board state after rendering and update sorted_cards
+        if board_state:
+            try:
+                import json
+                if isinstance(board_state, str):
+                    board_data = json.loads(board_state)
+                else:
+                    board_data = board_state
 
-    # For now, return the board_state as-is without processing
-    # TODO: Implement proper board_state processing once we understand the format
+                if isinstance(board_data, dict) and "columns" in board_data:
+                    # Update the cached board state
+                    st.session_state.last_board_state = board_data
+                    # Sync board state with sorted_cards
+                    sync_board_state()
+                    
+            except (json.JSONDecodeError, ValueError, AttributeError, TypeError) as e:
+                st.error(f"Error processing board state: {str(e)}")
+
     return board_state
 
 
@@ -214,13 +312,17 @@ def check_completition():
         st.success("Card sorting completed!")
         return True
 
+def reset_card_sorting():
+    """Callback function to reset card sorting"""
+    st.session_state.card_sorting_reset = True
+    st.session_state.sorted_cards = None
+    st.write("DEBUG: Reset triggered - reset flag:", st.session_state.card_sorting_reset)
+
 def handle_completion():
     """Handle the completion of card sorting"""
     container = st.container(horizontal=True, gap="medium", horizontal_alignment="right")
 
-    if container.button("Reset", type="secondary"):
-        st.session_state.pop("sorted_cards")
-        st.rerun()
+    container.button("Reset", type="secondary", on_click=reset_card_sorting)
     if container.button("Complete", type="primary"):
         return check_completition()
     return False
@@ -249,7 +351,7 @@ def get_example_survey():
             "Banking Channels",
             "Support"
         ],
-        "allow_custom_categories": True
+        "allow_custom_categories": "Open"
     }
 
 def main():
@@ -275,7 +377,8 @@ def main():
     
     board_layout = render_header(survey_config)
 
-    if survey_config["allow_custom_categories"]:
+    allow_custom = survey_config.get("allow_custom_categories", "Closed")
+    if allow_custom == "Open" or allow_custom == "Hybrid":
         render_category_creator()
 
     render_kanban_interface(survey_config, board_layout)
