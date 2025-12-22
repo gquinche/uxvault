@@ -1,11 +1,17 @@
 [server]
 enableStaticServing = true
-
+fileWatcherType = "auto"
+folderWatchList = ["/home/vscode/.streamlit/myDummyModule"]
+runOnSave = true
 [[theme.fontFaces]]
 family = "LeagueSpartan-VariableFont_wght"
 url = "app/static/LeagueSpartan-VariableFont_wght.ttf"
-style = "normal" 
-[theme]
+style = "bold" 
+[theme.light]
+base = "light"
+font = "serif"
+primaryColor="#995ec5"
+[theme.dark]
 base = "light"
 font = "LeagueSpartan-VariableFont_wght"
 primaryColor="#995ec5"

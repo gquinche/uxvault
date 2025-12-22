@@ -15,6 +15,11 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
             st.switch_page("uxvault/create_card_sorting.py")
         
         if st.button("Learn more"):
-            st.switch_page("uxvault/about.py") 
+            st.switch_page("uxvault/about.py")
+
+        if st.button("Login/Sign Up with Google"):
+            st.switch_page("uxvault/log_in.py")
         # st.page_link(label="Create a card sorting", page="create_card_sorting.py", icon=":material/create:")
         # st.page_link(label="Learn more", page="about.py")
+
+

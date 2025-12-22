@@ -1,8 +1,15 @@
 import streamlit as st
 from datetime import datetime
+import time as time
 from streamlit_kanban_os import kanban_board
 import streamlit_kanban_os
+# from uxvault.utils.url_handling import get_survey_id_from_url # Import for URL handling
+import uxvault.backend.supabase_client as supabase_client
+import importlib
 
+importlib.reload(supabase_client)
+# TODO use an st.fragment to control for reruns of the kanban board to reduce complexity of code
+test_survey_uuid = 'bd9550c7-e11c-4df5-87e9-cd57744c7d21'
 def initialize_session_state():
     """Initialize base session state variables"""
     if "testing_survey" not in st.session_state:
@@ -11,6 +18,10 @@ def initialize_session_state():
         st.session_state.sorted_cards = None
     if "card_sorting_reset" not in st.session_state:
         st.session_state.card_sorting_reset = True
+    if "completion_state" not in st.session_state:
+        st.session_state.completion_state = None  # Stores completion status and message
+    if "completion_message" not in st.session_state:
+        st.session_state.completion_message = None  # Stores the message to display
 
 def initialize_card_sorting(survey_config):
     """Initialize or reset card sorting based on survey configuration"""
@@ -40,6 +51,7 @@ def render_header(survey_config):
             st.title(survey_config["title"])
         else:
             st.title("Card Sorting Survey")
+
 
         board_layout = st.pills(
             "Interface",
@@ -236,7 +248,7 @@ def render_kanban_interface(survey_config, board_layout):
         initial_board.append(column_dict)
 
     # Generate unique key for the kanban board - hash of category names only
-    component_key = f"kanban_{hash(str(sorted(st.session_state.sorted_cards.keys())))}"
+
 
     # Choose interface based on selection
     if board_layout == "Legacy Standard":
@@ -276,8 +288,11 @@ def render_kanban_interface(survey_config, board_layout):
             main_column_min_width="stretch",
             min_width=200,  # Minimum width to prevent resizing
             min_height=min_height,
-            key=component_key,
-
+            key="kanban_board_component", #TEMPORARY SOLUTION
+            # if on hybrid or open allow new categories by setting to true
+            allow_new_categories= survey_config.get("allow_custom_categories", "Closed") in ["Open", "Hybrid"],
+            rename_categories='new_only',
+            debug_font=True
         )
 
         # Cache the actual board state after rendering and update sorted_cards
@@ -301,22 +316,21 @@ def render_kanban_interface(survey_config, board_layout):
     return board_state
 
 
-def check_completition():
-    if st.session_state.sorted_cards.get("Uncategorized"):
-        st.warning("Please categorize all cards before completing.")
-        return False
-    else:
-        # st.empty()
-        # force a new line with some empty content
-        st.divider()
-        st.success("Card sorting completed!")
-        return True
+def set_completion_state(state: str, message: str):
+    """Callback to set completion state"""
+    st.session_state.completion_state = state
+    st.session_state.completion_message = message
+
+def reset_completion_state():
+    """Reset completion state"""
+    st.session_state.completion_state = None
+    st.session_state.completion_message = None
+    st.session_state.card_sorting_reset = True
+    st.session_state.sorted_cards = None
 
 def reset_card_sorting():
     """Callback function to reset card sorting"""
-    st.session_state.card_sorting_reset = True
-    st.session_state.sorted_cards = None
-    st.write("DEBUG: Reset triggered - reset flag:", st.session_state.card_sorting_reset)
+    reset_completion_state()
 
 def handle_completion():
     """Handle the completion of card sorting"""
@@ -324,12 +338,42 @@ def handle_completion():
 
     container.button("Reset", type="secondary", on_click=reset_card_sorting)
     if container.button("Complete", type="primary"):
-        return check_completition()
-    return False
+        # Check if all cards are categorized
+        if st.session_state.sorted_cards.get("Uncategorized"):
+            set_completion_state("error_incomplete", "Please categorize all cards before completing.")
+        else:
+            # All cards categorized, set processing state
+            st.session_state.completion_state = "processing"
+            st.rerun()
+def get_uxvault_survey():
+    # ask people about this page current layout instead
+    """Returns the UX Vault card sorting survey configuration"""
+    return {
+        "id": "c8300805-5caf-49e5-912a-279c41ae9c1a",  # UX Vault survey UUID
+        "title": "UX Vault Card Sorting Survey",
+        "description": "Help us improve the UX Vault with a meta card sorting, categorize if the current features make sense in their category!",
+        "cards": [
+            "Home",
+            "About us",
+            "Dashboard",
+            "Create Card sorting",
+            "Solve Card Sorting",
+            "Log In/ Sign Up",
 
+        ],
+        "use_named_categories": True,
+        "categories": [
+            "User",
+            "Tools",
+            "Who we are",
+        ],
+        "allow_custom_categories": "Hybrid"
+    }
 def get_example_survey():
+    # ask people about this page current layout instead
     """Returns an example card sorting survey configuration"""
     return {
+        "id": "32559d29-4118-4b52-b3e0-1b27beaf95dd",  # Test survey UUID
         "title": "Example Card Sorting Survey",
         "description": "This is an example survey to help you understand how card sorting works.",
         "cards": [
@@ -361,14 +405,22 @@ def main():
     # Handle no active survey case
     if not st.session_state.testing_survey:
         with st.container():
-            st.error("No survey configuration found. Please create a survey first.")
+            st.warning("No survey configuration found. Please create a survey first, or test our built-in examples.")
             
-            with st.container(horizontal=True, gap="medium"):
-                if st.button("Back to Survey Creation"):
-                    st.switch_page("uxvault/create_card_sorting.py")
-                if st.button("Try Example Survey"):
+            with st.container(horizontal=True, gap="medium",horizontal_alignment='distribute',vertical_alignment='center'):
+
+                card_sorting_example = st.pills("Select a card sorting example", options=["UX vault survey", "Banking app survey"],help="Choose between the built-in UX Vault survey or an example banking app survey to practice card sorting.")
+
+                if card_sorting_example == "UX vault survey":
+                    st.session_state.testing_survey = get_uxvault_survey()
+                    st.rerun()
+                elif card_sorting_example == "Banking app survey":
                     st.session_state.testing_survey = get_example_survey()
                     st.rerun()
+                
+                if st.button("Back to Survey Creation",type='primary'):
+                    st.switch_page("uxvault/create_card_sorting.py")
+                
         st.stop()
     
     # Initialize card sorting if needed
@@ -377,19 +429,40 @@ def main():
     
     board_layout = render_header(survey_config)
 
-    allow_custom = survey_config.get("allow_custom_categories", "Closed")
-    if allow_custom == "Open" or allow_custom == "Hybrid":
-        render_category_creator()
+
 
     render_kanban_interface(survey_config, board_layout)
     
-    if handle_completion():
+    # Handle completion based on session state
+    if st.session_state.completion_state == "processing":
         results = {
             "survey_config": survey_config,
             "sorted_cards": st.session_state.sorted_cards,
             "completed_at": str(datetime.now())
         }
-        # st.json(results)
+        
+        survey_id = survey_config.get("id") # Get survey ID from config
+        if not survey_id:
+            # Set completion message for unregistered surveys
+            set_completion_state("completed_no_server", "Survey completed but not submitted to servers - this is probably a test survey that isn't registered yet.")
+        else:
+            try:
+                supabase_client.submit_survey_response(survey_id, results)
+                set_completion_state("completed_success", "Your response has been stored!")
+            except Exception as e:
+                set_completion_state("completed_error", f"You completed the card sorting but we couldn't store the results on servers: {e}")
+    
+    # Display persistent completion message if state is set
+    if st.session_state.completion_state and st.session_state.completion_state != "processing":
+        if st.session_state.completion_state.startswith("error"):
+            # Display error messages as warnings
+            st.warning(st.session_state.completion_message)
+        elif st.session_state.completion_state.startswith("completed"):
+            # Display success/info messages as info
+            st.info(st.session_state.completion_message)
+        
+
+    handle_completion()
 
 if __name__ == "__main__":
     main()

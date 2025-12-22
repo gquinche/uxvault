@@ -48,3 +48,15 @@ def get_share_url(survey_config: dict, use_base64: bool = False) -> str:
     # Add query parameters
     query_param = encode_survey(survey_config, use_base64)
     return f"{base_url}?{query_param}"
+
+def get_survey_id_from_url() -> Optional[str]:
+    """
+    Extracts the survey ID from the URL query parameters.
+    Assumes the survey ID is part of the decoded survey configuration.
+    """
+    query_params = st.query_params
+    survey_config, error_message = decode_survey(query_params)
+
+    if survey_config and "id" in survey_config:
+        return survey_config["id"]
+    return None

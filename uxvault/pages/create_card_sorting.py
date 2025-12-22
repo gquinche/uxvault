@@ -118,7 +118,6 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
         )
     else:
         categories = []
-        st.session_state["categories"] = categories
 
     # Create survey configuration dictionary
     survey_config = {
@@ -139,7 +138,7 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
         st.session_state["testing_survey"] = survey_config
         st.switch_page("uxvault/solve_card_sorting.py")
 
-    if st.button("Save Card Sorting", type="primary", width=MAX_WIDTH,
+    if st.button("Create Card Sorting", type="primary", width=MAX_WIDTH,
                  help="This will create the card sorting survey with the provided details."):
         if validate_survey_config():
             survey_config = {
@@ -156,14 +155,13 @@ with st.container(horizontal=False, gap="medium", horizontal_alignment="center")
             
             # Show success message
             st.success("Card Sorting created successfully!")
-            st.session_state.shareable_survey = True
+            
             # Show sharing options
-    if st.session_state.get("shareable_survey"):
-        st.subheader("Share Card Sorting")
-        render_share_options(survey_config)
-
-        # Test button
-        st.divider()
-        if st.button("Test Card Sorting", type="secondary", width=300):
-            st.session_state.testing_survey = survey_config
-            st.switch_page("uxvault/solve_card_sorting.py")
+            st.divider()
+            st.subheader("Share Card Sorting")
+            render_share_options(survey_config)
+            
+            # Test button
+            st.divider()
+            if st.button("Test Card Sorting", type="secondary", width=300):
+                st.switch_page("uxvault/solve_card_sorting.py")

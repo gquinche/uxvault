@@ -13,7 +13,8 @@ UX Vault is a Streamlit-based application for conducting card sorting surveys. T
 - `streamlit_kanban_os` - Custom Streamlit component for drag-drop (in development)
 
 ### State Management
-- Use `st.session_state` for all persistent data
+- Use `st.session_state` for persistent data
+- if possible caching with `st.cache_data` for expensive computations can also persist data between reruns
 - Survey configurations stored in `st.session_state["testing_survey"]`
 - Card sorting state in `st.session_state.sorted_cards`
 
