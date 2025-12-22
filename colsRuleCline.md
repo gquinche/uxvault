@@ -1,0 +1,1 @@
+never use st.cols use with st.container(horizontal=True) Instead
