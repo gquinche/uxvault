@@ -9,11 +9,16 @@ readme = "README.md"
 requires-python = ">=3.10,<3.12"
 dependencies = [
     "streamlit[charts] (>=1.52.1,<2.0.0)",
-    "streamlit-kanban-os @ file://./streamlit_kanban_os-0.3.0.dev0-py3-none-any.whl",
+    "streamlit-kanban-os (>=0.3.0.dev0,<1.0.0)",
     "st-supabase-connection (>=2.1.2,<3.0.0)",
     "matplotlib (>=3.10.7,<4.0.0)",
     "scipy (==1.15)",
 ]
+[[tool.poetry.source]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+priority = "supplemental"
+
 [tool.poetry]
 package-mode = false
 
