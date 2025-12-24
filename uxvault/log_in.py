@@ -75,22 +75,32 @@ def _render_signin_body():
 with st.container(horizontal=False,horizontal_alignment='right',border=True,):
     # centered title
     st.markdown('<h1 style="text-align: center;">Log In / Sign Up</h1>', unsafe_allow_html=True)
-    if st.user.is_logged_in:
+
+    # Safely obtain the runtime-provided user object (if available)
+    user_obj = getattr(st, "user", None) or getattr(st, "experimental_user", None)
+
+    if user_obj and getattr(user_obj, "is_logged_in", False):
         # Try to log in with Google stub to set up Supabase session for other methods
         try:
-            supabase_client.get_authenticated_client(user=st.user, secrets=st.secrets.connections.supabase)
+            supabase_secrets = None
+            try:
+                supabase_secrets = st.secrets.get("connections", {}).get("supabase")
+            except Exception:
+                supabase_secrets = None
+            supabase_client.get_authenticated_client(user=user_obj, secrets=supabase_secrets)
             st.success("Logged in!")
             # This sets st.session_state.supabase_session to be used by other methods
         except Exception as e:
             st.error(f"Login failed. Please contact us for help. Error: {e}")
         else:
-            st.write(f"Hello {st.user.name} you are logged in!")
+            display_name = getattr(user_obj, "name", None) or getattr(user_obj, "email", None) or "User"
+            st.write(f"Hello {display_name} you are logged in!")
         # enabled another quick log out button here
         if st.button(":material/logout: Log out"):
-            st.logout()
-        # with st.expander("User details",expanded=False):
-        #     for el in st.user.keys():
-        #         st.write(f"**{el}**: {str(st.user[el])[:5]}...")
+            try:
+                st.logout()
+            except Exception:
+                st.warning("Logout not supported in this environment.")
     else:
         st.write("User not logged in, press the button below to log in.")
         if st.button(":material/login: Log in"):
